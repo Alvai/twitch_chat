@@ -1,0 +1,22 @@
+{
+  "name": "twitch_chat",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "yarn workspace server dev",
+    "client": "yarn workspace client dev "
+  },
+  "keywords": [],
+  "author": "Alvi",
+  "license": "ISC"
+}
