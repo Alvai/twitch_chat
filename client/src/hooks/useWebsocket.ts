@@ -1,11 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
+/**
+ * The message sent to the websocket server and stored in the DB
+ */
+interface Message {
+  username: string;
+  message: string;
+}
+
+/**
+ * The websocket server sends events of this type to the client
+ */
+type WebsocketEvent =
+  | {
+      eventType: "new_message";
+      payload: Message;
+    }
+  | {
+      eventType: "initial_message";
+      payload: { messages: Message[] };
+    };
+
+/**
+ * Takes a variables and checks if it is a WebsocketEvent
+ **/
+const isWebsocketEvent = (event: unknown): event is WebsocketEvent => {
+  return (
+    event !== null &&
+    typeof event === "object" &&
+    "eventType" in event &&
+    "payload" in event
+  );
+};
+
+/**
+ * Custom hook to handle the websocket connection
+ * @param websocketURL the url of the websocket server
+ * @returns sendMessage function to send a message to the server
+ * @returns messages array of messages
+ * */
 const useWebsocket = (websocketURL: string) => {
+  // Stores the websocket connection
   const websocketRef = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<
-    { message: string; username: string }[]
-  >([]);
+  // Stores the messages received from the websocket server
+  const [messages, setMessages] = useState<Message[]>([]);
 
+  /**
+   * Sends a message to the websocket server if the connection is open
+   */
   const sendMessage = useCallback((payload: string) => {
     // check if there is a websocket connection and if it is open
     if (
@@ -22,22 +64,15 @@ const useWebsocket = (websocketURL: string) => {
   useEffect(() => {
     const ws = new WebSocket(websocketURL);
 
+    // when connected, set the websocketRef to the current websocket connection
     ws.onopen = function open() {
       websocketRef.current = ws;
-      console.log("connected");
     };
 
-    ws.onmessage = function message({ data }) {
-      console.log(data);
-      if (typeof data !== "string") {
-        return;
-      }
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        JSON.parse(data) as { message: string; username: string },
-      ]);
-    };
+    // set the message handler
+    ws.onmessage = messageHandler(setMessages);
 
+    // reset the ref when the connection is closed
     ws.onclose = function (event) {
       websocketRef.current = null;
       if (event.wasClean) {
@@ -73,3 +108,29 @@ const useWebsocket = (websocketURL: string) => {
 };
 
 export { useWebsocket };
+
+const messageHandler =
+  (updateMessages: React.Dispatch<React.SetStateAction<Message[]>>) =>
+  ({ data }: MessageEvent) => {
+    console.log(data);
+    if (typeof data !== "string") {
+      return;
+    }
+    const jsonPayload: unknown = JSON.parse(data);
+
+    if (!isWebsocketEvent(jsonPayload)) return;
+
+    if (jsonPayload.eventType === "initial_message") {
+      updateMessages((currentMessages) => [
+        ...currentMessages,
+        ...jsonPayload.payload.messages,
+      ]);
+    }
+
+    if (jsonPayload.eventType === "new_message") {
+      updateMessages((currentMessages) => [
+        ...currentMessages,
+        jsonPayload.payload,
+      ]);
+    }
+  };

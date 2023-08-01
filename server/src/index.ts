@@ -1,5 +1,9 @@
+// load the env
+import "dotenv/config";
+
 import express from "express";
-import WebSocket from "ws";
+import { getDBconn, initDBcon } from "./db/db";
+import { initWebsocketServer } from "./websocketServer";
 
 const app = express();
 
@@ -7,21 +11,17 @@ app.use(express.json());
 
 app.get("/", (_, res) => res.json({ message: "Twitch Chat API" }));
 
-const server = app.listen(process.env.port || 3000, () =>
-  console.log(`🚀 Server ready at: http://localhost:3000`)
-);
+// init the database connection and start the server
+initDBcon().then(() => {
+  const server = app.listen(process.env.port || 3000, () =>
+    console.log(`🚀 Server ready at: http://localhost:3000`)
+  );
 
-// create websocket server using the express server
-const wss = new WebSocket.Server({ server });
+  initWebsocketServer(server);
 
-wss.on("connection", function connection(ws) {
-  // on connection, set the message handler for the websocket
-  ws.on("message", function incoming(data) {
-    // broadcast the message to all clients
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(data.toString());
-      }
-    });
+  // when the server is closed, close the database connection
+  server.on("close", async () => {
+    const dbcon = await getDBconn();
+    dbcon.close();
   });
 });
