@@ -67,7 +67,7 @@ const useWebsocket = (websocketURL: string) => {
         ws.close();
       }
     };
-  }, []);
+  }, [websocketURL]);
 
   return { sendMessage, messages };
 };
