@@ -1,27 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * The message sent to the websocket server and stored in the DB
- */
-interface Message {
-  username: string;
-  message: string;
-}
-
-/**
- * The websocket server sends events of this type to the client
- */
-type WebsocketEvent =
-  | {
-      eventType: "new_message";
-      payload: Message;
-    }
-  | {
-      eventType: "initial_message";
-      payload: { messages: Message[] };
-    };
-
-/**
  * Takes a variables and checks if it is a WebsocketEvent
  **/
 const isWebsocketEvent = (event: unknown): event is WebsocketEvent => {
@@ -34,10 +13,7 @@ const isWebsocketEvent = (event: unknown): event is WebsocketEvent => {
 };
 
 /**
- * Custom hook to handle the websocket connection
- * @param websocketURL the url of the websocket server
- * @returns sendMessage function to send a message to the server
- * @returns messages array of messages
+ * Custom hook to handle the websocket connection and send messages to the server
  * */
 const useWebsocket = (websocketURL: string) => {
   // Stores the websocket connection
@@ -109,6 +85,9 @@ const useWebsocket = (websocketURL: string) => {
 
 export { useWebsocket };
 
+/**
+ * Takes a function to update the messages and returns a function that handles the websocket messages
+ */
 const messageHandler =
   (updateMessages: React.Dispatch<React.SetStateAction<Message[]>>) =>
   ({ data }: MessageEvent) => {

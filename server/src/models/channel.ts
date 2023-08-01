@@ -1,15 +1,13 @@
+import { ObjectId } from "mongodb";
 import { getDBconn } from "../db/db";
 
 /**
  * Saves a message to a specific channel
  * message is pushed to the end of the messages array
- *
- * @param channelName
- * @param message
  */
 export const saveMessageToChannel = async (
   channelName: string,
-  message: { username: string; message: string }
+  message: RawMessage
 ) => {
   const dbcon = await getDBconn();
   const channelsDB = dbcon.db("livechat");
@@ -26,18 +24,17 @@ export const saveMessageToChannel = async (
   await channelCollection.updateOne(
     { name: "main" },
     {
-      $push: { messages: message },
+      $push: { messages: { ...message, _id: new ObjectId() } },
     }
   );
 };
 
 /**
  * Loads the last 20 messages from a specific channel
- *
- * @param channelName
- * @returns array of messages
  */
-export const loadPreviousMessages = async (channelName: string) => {
+export const loadPreviousMessages = async (
+  channelName: string
+): Promise<Message> => {
   const dbcon = await getDBconn();
   const channelsDB = dbcon.db("livechat");
 
