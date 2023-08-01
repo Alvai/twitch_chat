@@ -1,5 +1,6 @@
-import { Navbar } from "./components/navbar";
+import { Navbar } from "./components/Navbar";
 import { useUser } from "./hooks/useUser";
+import { LiveChat } from "./pages/LiveChat";
 import { LoginPage } from "./pages/LoginPage";
 
 const App = () => {
@@ -10,7 +11,7 @@ const App = () => {
   return (
     <div>
       <Navbar />
-      {user ? <p>No messages</p> : <LoginPage />}
+      {user ? <LiveChat /> : <LoginPage />}
     </div>
   );
 };
