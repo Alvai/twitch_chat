@@ -9,7 +9,7 @@ const App = () => {
   if (isAuthLoading) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div className="grid place-items-center">
       <Navbar />
       {user ? <LiveChat /> : <LoginPage />}
     </div>

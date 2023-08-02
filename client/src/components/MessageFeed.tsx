@@ -21,7 +21,7 @@ const MessageFeed = ({ messages }: { messages: Message[] }) => {
 
   return (
     <div
-      style={{ height: 500, overflowY: "auto", scrollBehavior: "smooth" }}
+      className="w-full  h-[400px] overflow-y-auto scroll-smooth p-2"
       ref={messageContainerRef}
     >
       {messages.length === 0 ? (
@@ -29,7 +29,10 @@ const MessageFeed = ({ messages }: { messages: Message[] }) => {
       ) : (
         messages.map((message) => (
           <p key={message._id}>
-            {message.username}: {message.message}
+            <span className="font-semibold text-indigo-600">
+              {message.username}
+            </span>
+            : {message.message}
           </p>
         ))
       )}
