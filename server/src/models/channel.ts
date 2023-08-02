@@ -22,7 +22,7 @@ export const saveMessageToChannel = async (
   }
 
   await channelCollection.updateOne(
-    { name: "main" },
+    { name: channelName },
     {
       $push: { messages: { ...message, _id: new ObjectId() } },
     }
@@ -49,4 +49,25 @@ export const loadPreviousMessages = async (
   }
 
   return selectedChannel?.messages.slice(-20) || [];
+};
+
+/**
+ * check if a channel exists, otherwise create it
+ */
+export const findOrCreateChannel = async (channelName: string) => {
+  const dbcon = await getDBconn();
+  const channelsDB = dbcon.db("livechat");
+
+  const channelCollection = channelsDB.collection("channels");
+
+  const selectedChannel = await channelCollection.findOne({
+    name: channelName,
+  });
+
+  if (!selectedChannel) {
+    await channelCollection.insertOne({
+      name: channelName,
+      messages: [],
+    });
+  }
 };

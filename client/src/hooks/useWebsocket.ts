@@ -77,6 +77,9 @@ const useWebsocket = (websocketURL: string) => {
         console.log("Connection cancelled. ignore error in console");
         ws.close();
       }
+
+      // reset messages when the websocket is closed
+      setMessages([]);
     };
   }, [websocketURL]);
 
